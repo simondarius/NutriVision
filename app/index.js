@@ -69,7 +69,6 @@ export default function App() {
         </View>
         <View style={styles.buttonPrimary}>
           <TouchableOpacity onPress={takePicture}>
-            <Text style={styles.text}>Take Picture</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.buttonSecondary}>
