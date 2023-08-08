@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Camera } from 'expo-camera';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
+import * as MediaLibrary from 'expo-media-library';
+import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
@@ -10,19 +12,8 @@ export default function App() {
   const cameraRef = useRef(null);
   const [isPictureTaken, setIsPictureTaken] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
-
-  if (!permission) {
-    return <View />;
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="Grant Permission" />
-      </View>
-    );
-  }
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   async function takePicture() {
     if (cameraRef.current) {
@@ -36,7 +27,7 @@ export default function App() {
 
   async function uploadImageToServer(imageUri) {
     if (imageUri) {
-      const apiUrl = 'http://localhost:5000/upload';//Carlos aici daca vrei schimba adresa unde ai backendu
+      const apiUrl = 'http://localhost:5000/upload';
       const formData = new FormData();
       formData.append('photo', {
         uri: imageUri,
@@ -52,10 +43,38 @@ export default function App() {
         });
 
         console.log('Image uploaded:', response.data);
+        toggleModal();
       } catch (error) {
         console.error('Error uploading image:', error);
       }
     }
+  }
+
+  async function openGallery() {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === 'granted') {
+        const album = await MediaLibrary.getAlbumAsync('Camera');
+        if (album) {
+          const media = await MediaLibrary.getAssetsAsync({ album: album.id });
+          if (media.assets.length > 0) {
+            MediaLibrary.openAsset(media.assets[0]);
+          } else {
+            console.log('Galeria este goală.');
+          }
+        } else {
+          console.log('Albumul nu a fost găsit.');
+        }
+      } else {
+        console.log('Permisiunea pentru galerie nu a fost acordată.');
+      }
+    } catch (error) {
+      console.error('Eroare la deschiderea galeriei:', error);
+    }
+  }
+
+  function toggleModal() {
+    setIsModalVisible(!isModalVisible);
   }
 
   return (
@@ -63,20 +82,29 @@ export default function App() {
       <Camera style={styles.camera} type={type} ref={cameraRef} />
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSecondary}>
-          <TouchableOpacity onPress={() => console.log('Jurnal')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Jurnal')}>
             <FontAwesome name="book" size={24} color="white" />
           </TouchableOpacity>
         </View>
         <View style={styles.buttonPrimary}>
           <TouchableOpacity onPress={takePicture}>
+            <FontAwesome name="camera" size={24} color="white" />
           </TouchableOpacity>
         </View>
         <View style={styles.buttonSecondary}>
-          <TouchableOpacity onPress={() => console.log('Galerie')}>
-            <FontAwesome name="photo" size={24} color="white" /> 
+          <TouchableOpacity onPress={openGallery}>
+            <FontAwesome name="photo" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>
+      <Modal visible={isModalVisible} transparent>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>Imaginea a fost încărcată cu succes!</Text>
+          <TouchableOpacity onPress={toggleModal} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Închide</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -118,6 +146,27 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     fontWeight: 'bold',
+    color: 'black',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalText: {
+    fontSize: 18,
+    color: 'white',
+    marginBottom: 20,
+  },
+  closeButton: {
+    backgroundColor: '#ffffff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    fontSize: 16,
     color: 'black',
   },
 });
