@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera } from 'expo-camera';
 import { StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -8,15 +8,26 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [hasGalleryPermission, setHasGalleryPermission] = useState(null);
   const cameraRef = useRef(null);
   const [isPictureTaken, setIsPictureTaken] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigation = useNavigation();
 
+  useEffect(() => {
+    (async () => {
+      const cameraStatus = await Camera.requestPermissionsAsync();
+      setHasCameraPermission(cameraStatus.status === 'granted');
+      
+      const galleryStatus = await MediaLibrary.requestPermissionsAsync();
+      setHasGalleryPermission(galleryStatus.status === 'granted');
+    })();
+  }, []);
+
   async function takePicture() {
-    if (cameraRef.current) {
+    if (hasCameraPermission && cameraRef.current) {
       const { uri } = await cameraRef.current.takePictureAsync();
       console.log('Picture taken:', uri);
       setIsPictureTaken(true);
@@ -52,8 +63,7 @@ export default function App() {
 
   async function openGallery() {
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status === 'granted') {
+      if (hasGalleryPermission) {
         const album = await MediaLibrary.getAlbumAsync('Camera');
         if (album) {
           const media = await MediaLibrary.getAssetsAsync({ album: album.id });
