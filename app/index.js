@@ -136,14 +136,19 @@ export default function App() {
           </TouchableOpacity>
         </View>
       </View>
-      <Modal visible={isModalVisible} transparent>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>Imaginea a fost încărcată cu succes!</Text>
-          <TouchableOpacity onPress={toggleModal} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Închide</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity
+      style={styles.closeButton}
+      onPress={() => setIsModalVisible(false)}
+    >
+      <FontAwesome name="close" size={24} color="black" />
+    </TouchableOpacity>
+    <Text>Calorie
+      info
+    </Text>
+  </View>
+</Modal>
     </View>
   );
 }
@@ -183,30 +188,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  modalContainer: {
+  modalBackground: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: '#000000',
   },
-  modalText: {
-    fontSize: 18,
-    color: 'white',
-    marginBottom: 20,
+  modalContainer: {
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    padding: 20,
+    width: '80%',
+    height: 300,
+    alignItems: 'center',
+    elevation: 5,
+    alignSelf: 'center',
+    marginTop: '30%',
   },
   closeButton: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
   },
-  closeButtonText: {
-    fontSize: 16,
+  text: {
+    fontSize: 14,
+    fontWeight: 'bold',
     color: 'black',
   },
 });
