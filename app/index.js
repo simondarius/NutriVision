@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
@@ -18,17 +19,20 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const cameraStatus = await Camera.requestPermissionsAsync();
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
       setHasCameraPermission(cameraStatus.status === 'granted');
       
       const galleryStatus = await MediaLibrary.requestPermissionsAsync();
       setHasGalleryPermission(galleryStatus.status === 'granted');
     })();
   }, []);
-
   async function takePicture() {
     if (hasCameraPermission && cameraRef.current) {
-      const { uri } = await cameraRef.current.takePictureAsync();
+      const { uri, canceled } = await cameraRef.current.takePictureAsync();
+      if (canceled) {
+        console.log('Anulat de utilizator');
+        return;
+      }
       console.log('Picture taken:', uri);
       setIsPictureTaken(true);
       setCapturedImage(uri);
@@ -57,13 +61,43 @@ export default function App() {
         toggleModal();
       } catch (error) {
         console.error('Error uploading image:', error);
+        console.log('Response:', error.response);
       }
     }
   }
 
+  async function pickImageFromGallery() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+
+        console.log('Image picked from gallery:', result.uri);//Damn aici bagam logica cum sa scaneze ai imaginea selectata
+      }
+    } catch (error) {
+      console.error('Eroare la deschiderea galeriei:', error);
+    }
+  }
+  function toggleModal() {
+    setIsModalVisible(!isModalVisible);
+  }
+
+
   async function openGallery() {
     try {
       if (hasGalleryPermission) {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+        });
+        if (result.canceled) {
+          console.log('Anulat de utilizator');
+          return;
+        }
         const album = await MediaLibrary.getAlbumAsync('Camera');
         if (album) {
           const media = await MediaLibrary.getAssetsAsync({ album: album.id });
@@ -82,11 +116,6 @@ export default function App() {
       console.error('Eroare la deschiderea galeriei:', error);
     }
   }
-
-  function toggleModal() {
-    setIsModalVisible(!isModalVisible);
-  }
-
   return (
     <View style={styles.container}>
       <Camera style={styles.camera} type={type} ref={cameraRef} />
@@ -102,7 +131,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
         <View style={styles.buttonSecondary}>
-          <TouchableOpacity onPress={openGallery}>
+          <TouchableOpacity onPress={pickImageFromGallery}>
             <FontAwesome name="photo" size={24} color="white" />
           </TouchableOpacity>
         </View>
@@ -118,6 +147,7 @@ export default function App() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
