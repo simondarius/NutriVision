@@ -82,7 +82,7 @@ export default function App() {
 
       if (!result.canceled) {
 
-        console.log('Image picked from gallery:', result.uri);//Damn aici bagam logica cum sa scaneze ai imaginea selectata
+        console.log('Image picked from gallery:', result.uri);
       }
     } catch (error) {
       console.error('Eroare la deschiderea galeriei:', error);
