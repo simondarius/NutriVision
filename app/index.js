@@ -1,23 +1,38 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera } from 'expo-camera';
 import { StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [hasGalleryPermission, setHasGalleryPermission] = useState(null);
   const cameraRef = useRef(null);
   const [isPictureTaken, setIsPictureTaken] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigation = useNavigation();
 
+  useEffect(() => {
+    (async () => {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      setHasCameraPermission(cameraStatus.status === 'granted');
+      
+      const galleryStatus = await MediaLibrary.requestPermissionsAsync();
+      setHasGalleryPermission(galleryStatus.status === 'granted');
+    })();
+  }, []);
   async function takePicture() {
-    if (cameraRef.current) {
-      const { uri } = await cameraRef.current.takePictureAsync();
+    if (hasCameraPermission && cameraRef.current) {
+      const { uri, canceled } = await cameraRef.current.takePictureAsync();
+      if (canceled) {
+        console.log('Anulat de utilizator');
+        return;
+      }
       console.log('Picture taken:', uri);
       setIsPictureTaken(true);
       setCapturedImage(uri);
@@ -52,14 +67,43 @@ export default function App() {
         }
       } catch (error) {
         console.error('Error uploading image:', error);
+        console.log('Response:', error.response);
       }
     }
   }
 
+  async function pickImageFromGallery() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+
+        console.log('Image picked from gallery:', result.uri);//Damn aici bagam logica cum sa scaneze ai imaginea selectata
+      }
+    } catch (error) {
+      console.error('Eroare la deschiderea galeriei:', error);
+    }
+  }
+  function toggleModal() {
+    setIsModalVisible(!isModalVisible);
+  }
+
+
   async function openGallery() {
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status === 'granted') {
+      if (hasGalleryPermission) {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+        });
+        if (result.canceled) {
+          console.log('Anulat de utilizator');
+          return;
+        }
         const album = await MediaLibrary.getAlbumAsync('Camera');
         if (album) {
           const media = await MediaLibrary.getAssetsAsync({ album: album.id });
@@ -78,11 +122,6 @@ export default function App() {
       console.error('Eroare la deschiderea galeriei:', error);
     }
   }
-
-  function toggleModal() {
-    setIsModalVisible(!isModalVisible);
-  }
-
   return (
     <View style={styles.container}>
       <Camera style={styles.camera} type={type} ref={cameraRef} />
@@ -98,22 +137,28 @@ export default function App() {
           </TouchableOpacity>
         </View>
         <View style={styles.buttonSecondary}>
-          <TouchableOpacity onPress={openGallery}>
+          <TouchableOpacity onPress={pickImageFromGallery}>
             <FontAwesome name="photo" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>
-      <Modal visible={isModalVisible} transparent>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>Imaginea a fost încărcată cu succes!</Text>
-          <TouchableOpacity onPress={toggleModal} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Închide</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity
+      style={styles.closeButton}
+      onPress={() => setIsModalVisible(false)}
+    >
+      <FontAwesome name="close" size={24} color="black" />
+    </TouchableOpacity>
+    <Text>Calorie
+      info
+    </Text>
+  </View>
+</Modal>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -149,30 +194,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  modalContainer: {
+  modalBackground: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: '#000000',
   },
-  modalText: {
-    fontSize: 18,
-    color: 'white',
-    marginBottom: 20,
+  modalContainer: {
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    padding: 20,
+    width: '80%',
+    height: 300,
+    alignItems: 'center',
+    elevation: 5,
+    alignSelf: 'center',
+    marginTop: '30%',
   },
   closeButton: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
   },
-  closeButtonText: {
-    fontSize: 16,
+  text: {
+    fontSize: 14,
+    fontWeight: 'bold',
     color: 'black',
   },
 });
