@@ -27,23 +27,29 @@ export default function App() {
 
   async function uploadImageToServer(imageUri) {
     if (imageUri) {
-      const apiUrl = 'http://localhost:5000/upload';
+      const apiUrl = 'http://simondarius.pythonanywhere.com/';
       const formData = new FormData();
       formData.append('photo', {
         uri: imageUri,
         type: 'image/jpeg',
         name: 'photo.jpg',
       });
-
+  
       try {
-        const response = await axios.post(apiUrl, formData, {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json', 
+            'Content-Type': 'multipart/form-data', 
           },
+          body: formData,
         });
-
-        console.log('Image uploaded:', response.data);
-        toggleModal();
+        const responseData = await response.json();
+        if (responseData['response']=='OK') {
+          console.log('Image uploaded!',responseData);
+        } else {
+          console.error('Error uploading image. Server:', responseData);
+        }
       } catch (error) {
         console.error('Error uploading image:', error);
       }
