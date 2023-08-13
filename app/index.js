@@ -5,6 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import * as Animatable from 'react-native-animatable'; // Importăm animatable
 
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
@@ -148,23 +149,48 @@ export default function App() {
         </View>
       </View>
       <Modal visible={isModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setIsModalVisible(false)}
-          >
-            <FontAwesome name="close" size={24} color="black" />
-          </TouchableOpacity>
-          {calorieInfo && (
-            <View>
-              <Text>Carbohydrates: {calorieInfo.carbohydrates}</Text>
-              <Text>Fats: {calorieInfo.fats}</Text>
-              <Text>Kcal: {calorieInfo.kcal}</Text>
-              <Text>Proteins: {calorieInfo.proteins}</Text>
-            </View>
-          )}
-        </View>
-      </Modal>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity
+      style={styles.closeButton}
+      onPress={() => setIsModalVisible(false)}
+    >
+      <FontAwesome name="close" size={24} color="black" />
+    </TouchableOpacity>
+    {calorieInfo && (
+    <View>
+      <Text style={styles.foodName}>{calorieInfo.foodname}</Text>
+      <Text style={styles.sectionTitle}>Macronutrients per 100g</Text>
+    <View style={styles.chartContainer}>
+      <View style={styles.barContainer}>
+        <View style={[styles.bar, { height: calorieInfo.carbohydrates * 2, backgroundColor: '#FF5733' }]} />
+        <Text style={styles.barLabel}>Carbs</Text>
+      </View>
+      <View style={styles.barContainer}>
+        <View style={[styles.bar, { height: calorieInfo.fats * 2, backgroundColor: '#32CD32' }]} />
+        <Text style={styles.barLabel}>Fats</Text>
+      </View>
+      <View style={styles.barContainer}>
+        <View style={[styles.bar, { height: calorieInfo.proteins * 2, backgroundColor: '#3498DB' }]} />
+        <Text style={styles.barLabel}>Proteins</Text>
+      </View>
+    </View>
+    <View style={styles.macronutrientContainer}>
+  <View style={[styles.colorSquare, { backgroundColor: '#FF5733' }]} />
+  <Text style={styles.macronutrientText}>Carbs: {calorieInfo.carbohydrates}g</Text>
+</View>
+<View style={styles.macronutrientContainer}>
+  <View style={[styles.colorSquare, { backgroundColor: '#32CD32' }]} />
+  <Text style={styles.macronutrientText}>Fats: {calorieInfo.fats}g</Text>
+</View>
+<View style={styles.macronutrientContainer}>
+  <View style={[styles.colorSquare, { backgroundColor: '#3498DB' }]} />
+  <Text style={styles.macronutrientText}>Proteins: {calorieInfo.proteins}g</Text>
+</View>
+<Text style={styles.calories}>Calories:{calorieInfo.kcal} kcal</Text>
+  </View>
+    )}
+  </View>
+</Modal>
     </View>
   );
 }
@@ -217,5 +243,59 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     zIndex: 1,
+  },
+  chartContainer: {
+    marginTop: 50,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent:'space-between', 
+    marginBottom:10,
+  },
+  barContainer: {
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  bar: {
+    width: 20,
+  },
+  barLabel: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  macronutrientContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  colorSquare: {
+    width: 16,
+    height: 16,
+    marginRight: 8,
+  },
+  macronutrientText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+    marginTop: 50,
+  },
+  foodName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+  },
+  calories: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
   },
 });
