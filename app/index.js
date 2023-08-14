@@ -5,7 +5,6 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
-import * as Animatable from 'react-native-animatable'; // Importăm animatable
 
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
