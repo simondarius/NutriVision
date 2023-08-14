@@ -161,15 +161,15 @@ export default function App() {
       <Text style={styles.sectionTitle}>Macronutrients per 100g</Text>
     <View style={styles.chartContainer}>
       <View style={styles.barContainer}>
-        <View style={[styles.bar, { height: calorieInfo.carbohydrates * 2, backgroundColor: '#FF5733' }]} />
+        <View style={[styles.bar, { height: calorieInfo.carbohydrates , backgroundColor: '#FF5733' }]} />
         <Text style={styles.barLabel}>Carbs</Text>
       </View>
       <View style={styles.barContainer}>
-        <View style={[styles.bar, { height: calorieInfo.fats * 2, backgroundColor: '#32CD32' }]} />
+        <View style={[styles.bar, { height: calorieInfo.fats , backgroundColor: '#32CD32' }]} />
         <Text style={styles.barLabel}>Fats</Text>
       </View>
       <View style={styles.barContainer}>
-        <View style={[styles.bar, { height: calorieInfo.proteins * 2, backgroundColor: '#3498DB' }]} />
+        <View style={[styles.bar, { height: calorieInfo.proteins , backgroundColor: '#3498DB' }]} />
         <Text style={styles.barLabel}>Proteins</Text>
       </View>
     </View>
@@ -186,6 +186,14 @@ export default function App() {
   <Text style={styles.macronutrientText}>Proteins: {calorieInfo.proteins}g</Text>
 </View>
 <Text style={styles.calories}>Calories:{calorieInfo.kcal} kcal</Text>
+<TouchableOpacity
+      style={styles.bookButton}
+      onPress={() => {
+      }}
+    >
+      <FontAwesome name="book" size={24} color="black" />
+      <Text style={styles.bookButtonText}>Save in journal</Text>
+    </TouchableOpacity>
   </View>
     )}
   </View>
@@ -244,7 +252,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   chartContainer: {
-    marginTop: 50,
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent:'space-between', 
@@ -266,7 +274,6 @@ const styles = StyleSheet.create({
   macronutrientContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 30,
   },
   colorSquare: {
     width: 16,
@@ -283,17 +290,34 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: 'black',
-    marginTop: 50,
+    marginTop: 10,
   },
   foodName: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
     color: 'black',
+    alignSelf:'center',
   },
   calories: {
     marginTop: 10,
     fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  bookButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3498DB',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  bookButtonText: {
+    marginLeft: 10,
+    fontSize: 18,
     fontWeight: 'bold',
     color: 'black',
   },
