@@ -6,6 +6,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 
+
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
@@ -16,6 +17,8 @@ export default function App() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [calorieInfo, setCalorieInfo] = useState(null);
   const navigation = useNavigation();
+  const [savedCalorieInfo, setSavedCalorieInfo] = useState([]);
+
 
   useEffect(() => {
     (async () => {
@@ -126,15 +129,25 @@ export default function App() {
       console.error('Eroare la deschiderea galeriei:', error);
     }
   }
+  function salveazaInformatiile(info) {
+    if (info) {
+      setSavedCalorieInfo([...savedCalorieInfo, info]);
+      toggleModal();
+    }
+  }
+  
+
+  
 
   return (
     <View style={styles.container}>
       <Camera style={styles.camera} type={type} ref={cameraRef} />
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSecondary}>
-          <TouchableOpacity onPress={() => navigation.navigate('Jurnal')}>
-            <FontAwesome name="book" size={24} color="white" />
-          </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Jurnal', { savedCalorieInfo: savedCalorieInfo })}>
+          <FontAwesome name="book" size={24} color="white" />
+        </TouchableOpacity>
+
         </View>
         <View style={styles.buttonPrimary}>
           <TouchableOpacity onPress={takePicture}>
@@ -186,14 +199,11 @@ export default function App() {
   <Text style={styles.macronutrientText}>Proteins: {calorieInfo.proteins}g</Text>
 </View>
 <Text style={styles.calories}>Calories:{calorieInfo.kcal} kcal</Text>
-<TouchableOpacity
-      style={styles.bookButton}
-      onPress={() => {
-      }}
-    >
-      <FontAwesome name="book" size={24} color="black" />
-      <Text style={styles.bookButtonText}>Save in journal</Text>
-    </TouchableOpacity>
+<TouchableOpacity style={styles.bookButton} onPress={() => salveazaInformatiile(calorieInfo)}>
+  <FontAwesome name="book" size={24} color="black" />
+  <Text style={styles.bookButtonText}>Save in journal</Text>
+</TouchableOpacity>
+
   </View>
     )}
   </View>
