@@ -5,6 +5,9 @@
       "bundler": "metro"
     },
     "name": "ProiectAi",
-    "slug": "ProiectAi"
+    "slug": "ProiectAi",
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
