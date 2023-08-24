@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 
@@ -7,12 +7,15 @@ function Journal() {
   const route = useRoute();
   const savedCalorieInfo = route.params.savedCalorieInfo;
   const [allSavedCalorieInfo, setAllSavedCalorieInfo] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
 
   useEffect(() => {
     setAllSavedCalorieInfo(savedCalorieInfo);
   }, [savedCalorieInfo]);
-
-
+  useEffect(() => {
+  readDataFromStorage();
+}, []);
   const readDataFromStorage = async () => {
     try {
       const storedData = await AsyncStorage.getItem('calorieInfo');
@@ -38,31 +41,94 @@ function Journal() {
 
   const addNewData = (newData) => {
     console.log('Adding new data:', newData);
+  
+    // Adaugă data curentă la obiectul newData
+    newData.dateAdded = new Date().toISOString();
+  
     setAllSavedCalorieInfo((prevInfo) => [...prevInfo, newData]);
     saveDataToStorage();
   };
 
-    
-  return (
+
+  const filterDataByCategory = (data) => {
+    if (selectedCategory === 'today') {
+        return data;
+    } else if (selectedCategory === 'yesterday') {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      return data.filter(item => {
+        const itemDate = new Date(item.dateAdded);
+        return itemDate.getDate() === yesterday.getDate() && itemDate.getMonth() === yesterday.getMonth() && itemDate.getFullYear() === yesterday.getFullYear();
+      });
+    } else if (selectedCategory === 'lastWeek') {
+      const today = new Date(); // Adaugă data curentă
+      const lastWeekStart = new Date(today);
+      lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+      const lastWeekEnd = new Date(today);
+      return data.filter(item => {
+        const itemDate = new Date(item.dateAdded);
+        return itemDate >= lastWeekStart && itemDate <= lastWeekEnd;
+      });
+    } else {
+      // Filtrare pentru alte categorii (ex. 2 zile în urmă)
+      // Implementează logică similară aici
+      return [];
+    }
+  };
+  
+   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Journal</Text>
-      {allSavedCalorieInfo.map((info, index) => (
+    <ImageBackground source={require('./im1.jpg')} style={styles.backgroundImage}>
+      <View style={styles.categoryMenuBackground}>
+        <View style={styles.categoryMenu}>
+          <TouchableOpacity onPress={() => setSelectedCategory('today')}>
+            <Text style={selectedCategory === 'today' ? styles.activeCategory : styles.category}>Today</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setSelectedCategory('yesterday')}>
+            <Text style={selectedCategory === 'yesterday' ? styles.activeCategory : styles.category}>Yesterday</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setSelectedCategory('lastWeek')}>
+            <Text style={selectedCategory === 'lastWeek' ? styles.activeCategory : styles.category}>Last Week</Text>
+          </TouchableOpacity>
+          {/* Adaugă butoane pentru alte categorii aici */}
+        </View>
+      </View>
+      {/* Aici începe afișarea elementelor filtrate */}
+      {filterDataByCategory(allSavedCalorieInfo).map((info, index) => (
         <View key={index} style={styles.entry}>
-          <Text>Food: {info.foodname}</Text>
-          <Text>Carbs: {info.carbohydrates}g</Text>
-          <Text>Fats: {info.fats}g</Text>
-          <Text>Proteins: {info.proteins}g</Text>
-          <Text>Calories: {info.kcal} kcal</Text>
+          <Text style={styles.entryTitle}>Food: {info.foodname}</Text>
+          <Text style={styles.entryInfo}>Carbs: {info.carbohydrates}g</Text>
+          <Text style={styles.entryInfo}>Fats: {info.fats}g</Text>
+          <Text style={styles.entryInfo}>Proteins: {info.proteins}g</Text>
+          <Text style={styles.entryInfo}>Calories: {info.kcal} kcal</Text>
         </View>
       ))}
+      {/* Aici se termină afișarea elementelor filtrate */}
+      </ImageBackground>
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+  },
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryMenuBackground: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Fundal alb semi-transparent pentru butoane
+    padding: 30,
+  },
+  categoryMenu: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 30,
   },
   title: {
     fontSize: 24,
@@ -74,6 +140,43 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+  },
+  entryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  entryInfo: {
+    fontSize: 16,
+    marginBottom: 3,
+  },
+  category: {
+    // Stilurile butonului ne-selectat
+    fontSize: 16,
+    marginRight: 10, // Adaugă o distanță între butoane
+  },
+  activeCategory: {
+    // Stilurile butonului selectat
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10, // Adaugă o distanță între butoane
+    color: 'blue', // Poți schimba culoarea după preferințe
+  },
+  categoryButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  activeCategoryButton: {
+    backgroundColor: '#3498DB',
+  },
+  inactiveCategoryButton: {
+    backgroundColor: '#E0E0E0',
+  },
+  categoryButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });
 

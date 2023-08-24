@@ -5,6 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function App() {
@@ -67,6 +68,16 @@ export default function App() {
         if (responseData['response'] === 'OK') {
           console.log('Image uploaded!', responseData);
           setCalorieInfo(responseData);
+          try {
+            const existingData = await AsyncStorage.getItem('calorieInfo');
+            const newData = JSON.parse(existingData) || [];
+            newData.push(responseData);
+      
+            await AsyncStorage.setItem('calorieInfo', JSON.stringify(newData));
+            console.log('Data saved to AsyncStorage:', newData);
+          } catch (error) {
+            console.error('Error saving data to AsyncStorage:', error);
+          }
           toggleModal();
         } else {
           console.error('Error uploading image. Server:', responseData);
