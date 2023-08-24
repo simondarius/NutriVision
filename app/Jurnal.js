@@ -76,6 +76,17 @@ function Journal() {
       return [];
     }
   };
+
+  const calculateTotalCalories = (data) => {
+    let totalCalories = 0;
+  
+    data.forEach((info) => {
+      totalCalories += parseFloat(info.kcal);
+    });
+  
+    return totalCalories.toFixed(2); // Rotunjim suma la 2 zecimale
+  };
+  
   
    return (
     <View style={styles.container}>
@@ -102,10 +113,14 @@ function Journal() {
           <Text style={styles.entryInfo}>Fats: {info.fats}g</Text>
           <Text style={styles.entryInfo}>Proteins: {info.proteins}g</Text>
           <Text style={styles.entryInfo}>Calories: {info.kcal} kcal</Text>
-        </View>
-      ))}
       {/* Aici se termină afișarea elementelor filtrate */}
-      </ImageBackground>
+      </View>
+      ))}
+      <Text style={styles.totalCalories}>
+        Total Calories : {calculateTotalCalories(filterDataByCategory(allSavedCalorieInfo))} kcal
+      </Text>
+   </ImageBackground>
+
     </View>
   );
   
@@ -178,6 +193,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
+  totalCalories: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'center',
+    backgroundColor: 'white',
+  },  
 });
 
 export default Journal;
