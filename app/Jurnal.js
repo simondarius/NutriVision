@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     marginLeft: 15
   },
   addButton: {
-    padding: 10,
+    padding: 11,
     borderRadius: 20,
     marginRight: 0
   },

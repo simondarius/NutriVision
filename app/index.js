@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 11,
     color: 'black',
     marginTop: 10,
   },
