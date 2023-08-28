@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { FontAwesome } from '@expo/vector-icons';
+import { PieChart } from 'react-native-chart-kit';
+import { ScrollView } from 'react-native-gesture-handler';
 
 function Journal() {
+  const navigation = useNavigation();
   const route = useRoute();
   const savedCalorieInfo = route.params.savedCalorieInfo;
   const [allSavedCalorieInfo, setAllSavedCalorieInfo] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+
 
 
   useEffect(() => {
@@ -48,64 +53,68 @@ function Journal() {
     setAllSavedCalorieInfo((prevInfo) => [...prevInfo, newData]);
     saveDataToStorage();
   };
-
-
-  const filterDataByCategory = (data) => {
-    if (selectedCategory === 'today') {
-        return data;
-    } else if (selectedCategory === 'yesterday') {
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      return data.filter(item => {
-        const itemDate = new Date(item.dateAdded);
-        return itemDate.getDate() === yesterday.getDate() && itemDate.getMonth() === yesterday.getMonth() && itemDate.getFullYear() === yesterday.getFullYear();
-      });
-    } else if (selectedCategory === 'lastWeek') {
-      const today = new Date(); // Adaugă data curentă
-      const lastWeekStart = new Date(today);
-      lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-      const lastWeekEnd = new Date(today);
-      return data.filter(item => {
-        const itemDate = new Date(item.dateAdded);
-        return itemDate >= lastWeekStart && itemDate <= lastWeekEnd;
-      });
-    } else {
-      // Filtrare pentru alte categorii (ex. 2 zile în urmă)
-      // Implementează logică similară aici
-      return [];
-    }
-  };
-  
-   return (
-    <View style={styles.container}>
-    <ImageBackground source={require('./im1.jpg')} style={styles.backgroundImage}>
-      <View style={styles.categoryMenuBackground}>
-        <View style={styles.categoryMenu}>
-          <TouchableOpacity onPress={() => setSelectedCategory('today')}>
-            <Text style={selectedCategory === 'today' ? styles.activeCategory : styles.category}>Today</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedCategory('yesterday')}>
-            <Text style={selectedCategory === 'yesterday' ? styles.activeCategory : styles.category}>Yesterday</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedCategory('lastWeek')}>
-            <Text style={selectedCategory === 'lastWeek' ? styles.activeCategory : styles.category}>Last Week</Text>
-          </TouchableOpacity>
-          {/* Adaugă butoane pentru alte categorii aici */}
+  return (
+<View style={styles.container}>
+  <View style={styles.header}>
+    <Text style={styles.headerText}>My Journal</Text>
+    <TouchableOpacity
+      style={styles.addButton}
+      onPress={() => navigation.navigate('index', { addNewData })}
+    >
+      <FontAwesome name="angle-right" size={30} color="white" />
+    </TouchableOpacity>
+  </View>
+  <View style={styles.dataContainer}>
+  <ScrollView style={styles.dataContainer} showsVerticalScrollIndicator={false}>
+  {allSavedCalorieInfo.map((data, index) => (
+    <View key={index} style={styles.dataItem}>
+      <View style={styles.row}>
+        <View style={styles.dateContainer}>
+          <Text style={styles.dayText}>{getDayOfWeek(new Date())}</Text>
+        </View>
+        <View style={styles.infoContainer}>
+        <Text style={styles.dataItemText}>{data.foodname.toUpperCase()}</Text>
+  <View style={styles.macroContainer}>
+    <View style={[styles.colorSquare, { backgroundColor: '#FF5733' }]} />
+    <Text style={styles.macroText}>Carbs: {data.carbohydrates}g</Text>
+  </View>
+  <View style={styles.macroContainer}>
+    <View style={[styles.colorSquare, { backgroundColor: '#32CD32' }]} />
+    <Text style={styles.macroText}>Fats: {data.fats}g</Text>
+  </View>
+  <View style={styles.macroContainer}>
+    <View style={[styles.colorSquare, { backgroundColor: '#3498DB' }]} />
+    <Text style={styles.macroText}>Proteins: {data.proteins}g</Text>
+  </View>
+  <Text style={styles.dataItemText}>Calories: {data.kcal} kcal</Text>
+        </View>
+        <View style={styles.chartContainer}>
+          <PieChart
+            data={[
+              { name: 'Carbs', value: data.carbohydrates, color: '#FF5733' },
+              { name: 'Fats', value: data.fats, color: '#32CD32' },
+              { name: 'Proteins', value: data.proteins, color: '#3498DB' },
+            ]}
+            width={200}
+            height={100}
+            chartConfig={{
+              backgroundGradientFromOpacity: 0,
+              backgroundGradientToOpacity: 0,
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            }}
+            accessor="value"
+            style={{ alignSelf: 'center', marginLeft: 130 }}
+            hasLegend={false}
+            backgroundColor="transparent"
+          />
         </View>
       </View>
-      {/* Aici începe afișarea elementelor filtrate */}
-      {filterDataByCategory(allSavedCalorieInfo).map((info, index) => (
-        <View key={index} style={styles.entry}>
-          <Text style={styles.entryTitle}>Food: {info.foodname}</Text>
-          <Text style={styles.entryInfo}>Carbs: {info.carbohydrates}g</Text>
-          <Text style={styles.entryInfo}>Fats: {info.fats}g</Text>
-          <Text style={styles.entryInfo}>Proteins: {info.proteins}g</Text>
-          <Text style={styles.entryInfo}>Calories: {info.kcal} kcal</Text>
-        </View>
-      ))}
-      {/* Aici se termină afișarea elementelor filtrate */}
-      </ImageBackground>
+    </View>
+        ))}
+         <View style={styles.extraMarginHack} />
+        </ScrollView>
+      </View>
     </View>
   );
   
@@ -114,70 +123,100 @@ function Journal() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#800080',
   },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryMenuBackground: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Fundal alb semi-transparent pentru butoane
-    padding: 30,
-  },
-  categoryMenu: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#800080',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  entry: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-  },
-  entryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  entryInfo: {
-    fontSize: 16,
-    marginBottom: 3,
-  },
-  category: {
-    // Stilurile butonului ne-selectat
-    fontSize: 16,
-    marginRight: 10, // Adaugă o distanță între butoane
-  },
-  activeCategory: {
-    // Stilurile butonului selectat
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 10, // Adaugă o distanță între butoane
-    color: 'blue', // Poți schimba culoarea după preferințe
-  },
-  categoryButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 5,
-  },
-  activeCategoryButton: {
-    backgroundColor: '#3498DB',
-  },
-  inactiveCategoryButton: {
-    backgroundColor: '#E0E0E0',
-  },
-  categoryButtonText: {
-    fontSize: 16,
+  headerText: {
+    fontSize: 30,
     fontWeight: 'bold',
     color: 'white',
+    marginLeft: 15
+  },
+  addButton: {
+    padding: 11,
+    borderRadius: 20,
+    marginRight: 0
+  },
+  dataContainer: {
+    flex: 1,
+    padding: 20,
+    overflow: 'hidden',
+  },
+  dataItem: {
+    backgroundColor: '#B8B8B8',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+
+  },
+  dataItemText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 5,
+  },
+  dayText:{
+    top: 45,
+
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  dateContainer: {
+    width: 60,
+    marginRight: 10,
+  },
+  dayText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center',
+  },
+  dateText: {
+    fontSize: 14,
+    color: 'black',
+    textAlign: 'center',
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  chartContainer: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+  },
+  macroContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  colorSquare: {
+    width: 16,
+    height: 16,
+    marginRight: 8,
+  },
+  macroText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  extraMarginHack: {
+    width: 50,
   },
 });
+function getDayOfWeek(date) {
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayIndex = date.getDay();
+  return daysOfWeek[dayIndex];
+}
 
 export default Journal;
